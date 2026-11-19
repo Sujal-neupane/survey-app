@@ -2,7 +2,7 @@
 
 > A full-stack web application for creating dynamic surveys with cascading conditional logic, responsive respondent forms, authoritative server validation, immutable schema versioning, and real-time analytics.
 
-**Live Demo:** Not currently hosted. [Deploy this repository to Vercel](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FSujal-neupane%2Fsurvey-app) and configure the database/environment variables below.
+**Live Demo:** Not currently hosted. [Deploy this repository to Vercel](https://survey-app-three-rho.vercel.app/) and configure the database/environment variables below.
 **Demo Video:** *Available upon recording*
 **Demo Admin Credentials:** `demo@example.com` / `Demo@12345`
 
