@@ -12,11 +12,13 @@ import {
   Lock,
   Globe,
   Check,
-  ExternalLink,
   LogOut,
   FolderOpen,
   Loader2,
+  X,
 } from "lucide-react";
+
+export const dynamic = "force-dynamic";
 
 interface SurveyItem {
   id: string;
@@ -37,6 +39,10 @@ export default function AdminSurveysPage() {
   const [userEmail, setUserEmail] = useState<string>("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [newSurveyTitle, setNewSurveyTitle] = useState("");
+  const [newSurveyDescription, setNewSurveyDescription] = useState("");
+  const [createError, setCreateError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -64,23 +70,38 @@ export default function AdminSurveysPage() {
     loadData();
   }, []);
 
-  const handleCreate = async () => {
+  const openCreateModal = () => {
+    setNewSurveyTitle("");
+    setNewSurveyDescription("");
+    setCreateError(null);
+    setCreateModalOpen(true);
+  };
+
+  const handleCreate = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const trimmedTitle = newSurveyTitle.trim();
+    if (!trimmedTitle) {
+      setCreateError("Enter a survey title to continue.");
+      return;
+    }
+
     setCreating(true);
+    setCreateError(null);
     try {
       const res = await fetch("/api/surveys", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title: "Untitled Survey",
-          description: "",
+          title: trimmedTitle,
+          description: newSurveyDescription.trim(),
         }),
       });
 
       if (!res.ok) throw new Error("Failed to create survey");
       const data = await res.json();
       router.push(`/admin/surveys/${data.survey.id}/edit`);
-    } catch (err: any) {
-      alert(err.message || "Failed to create survey");
+    } catch (err: unknown) {
+      setCreateError(err instanceof Error ? err.message : "Failed to create survey");
       setCreating(false);
     }
   };
@@ -95,7 +116,7 @@ export default function AdminSurveysPage() {
       if (res.ok) {
         setSurveys((prev) => prev.filter((s) => s.id !== id));
       }
-    } catch (err) {
+    } catch {
       alert("Failed to delete survey");
     }
   };
@@ -176,7 +197,7 @@ export default function AdminSurveysPage() {
           <button
             type="button"
             disabled={creating}
-            onClick={handleCreate}
+            onClick={openCreateModal}
             className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-xs transition-colors disabled:opacity-50"
           >
             {creating ? (
@@ -210,7 +231,7 @@ export default function AdminSurveysPage() {
             <button
               type="button"
               disabled={creating}
-              onClick={handleCreate}
+              onClick={openCreateModal}
               className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-xs transition-colors"
             >
               <Plus className="w-4 h-4" />
@@ -321,6 +342,99 @@ export default function AdminSurveysPage() {
           </div>
         )}
       </main>
+
+      {createModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="create-survey-title"
+        >
+          <form
+            onSubmit={handleCreate}
+            className="w-full max-w-lg space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">
+                  New workspace
+                </p>
+                <h2 id="create-survey-title" className="mt-1 text-xl font-bold text-slate-950">
+                  Start with a survey title
+                </h2>
+                <p className="mt-1 text-sm leading-6 text-slate-600">
+                  Give your survey a name before opening the builder. You can add questions and
+                  branching logic next.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setCreateModalOpen(false)}
+                className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900"
+                aria-label="Close create survey dialog"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="new-survey-title" className="mb-1.5 block text-sm font-semibold text-slate-800">
+                  Survey title <span className="text-red-600">*</span>
+                </label>
+                <input
+                  id="new-survey-title"
+                  autoFocus
+                  required
+                  maxLength={200}
+                  value={newSurveyTitle}
+                  onChange={(event) => setNewSurveyTitle(event.target.value)}
+                  placeholder="e.g. Q4 customer feedback"
+                  className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-950 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/15"
+                />
+              </div>
+              <div>
+                <label htmlFor="new-survey-description" className="mb-1.5 block text-sm font-semibold text-slate-800">
+                  Welcome note <span className="font-normal text-slate-500">(optional)</span>
+                </label>
+                <textarea
+                  id="new-survey-description"
+                  rows={3}
+                  maxLength={1000}
+                  value={newSurveyDescription}
+                  onChange={(event) => setNewSurveyDescription(event.target.value)}
+                  placeholder="Tell respondents why you are collecting feedback."
+                  className="w-full resize-y rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-950 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/15"
+                />
+              </div>
+            </div>
+
+            {createError && (
+              <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
+                {createError}
+              </p>
+            )}
+
+            <div className="flex justify-end gap-3 border-t border-slate-100 pt-4">
+              <button
+                type="button"
+                onClick={() => setCreateModalOpen(false)}
+                className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={creating}
+                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {creating && <Loader2 className="h-4 w-4 animate-spin" />}
+                Continue to builder
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 }
