@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { apiHandler, ApiError } from "@/lib/errors";
 import { validateAnswers } from "@/lib/survey/validate";
@@ -107,7 +108,7 @@ export const POST = apiHandler(async (req: Request, { params }: { params: Promis
         where: { draftToken },
         data: {
           surveyVersionId: targetVersion.id,
-          answers: validation.answers as any,
+          answers: validation.answers as unknown as Prisma.InputJsonValue,
           status: "COMPLETE",
           submittedAt: new Date(),
           ipHash,
@@ -120,7 +121,7 @@ export const POST = apiHandler(async (req: Request, { params }: { params: Promis
     savedResponse = await db.response.create({
       data: {
         surveyVersionId: targetVersion.id,
-        answers: validation.answers as any,
+        answers: validation.answers as unknown as Prisma.InputJsonValue,
         status: "COMPLETE",
         submittedAt: new Date(),
         ipHash,

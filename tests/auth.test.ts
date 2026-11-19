@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { signToken, verifyToken, requireSurveyOwner } from "../src/lib/auth";
 import { db } from "../src/lib/db";
 import { ApiError } from "../src/lib/errors";
@@ -29,22 +29,36 @@ describe("Auth Token and Ownership", () => {
   });
 
   it("requireSurveyOwner grants access when userId matches survey ownerId", async () => {
-    vi.mocked(db.survey.findUnique).mockResolvedValueOnce({
+    const mockSurvey = {
       id: "survey_1",
+      slug: "test-survey",
       ownerId: "user_owner",
       title: "Test Survey",
-    } as any);
+      description: "",
+      draftSchema: {},
+      status: "DRAFT" as const,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    vi.mocked(db.survey.findUnique).mockResolvedValueOnce(mockSurvey);
 
     const survey = await requireSurveyOwner("survey_1", "user_owner");
     expect(survey.id).toBe("survey_1");
   });
 
   it("requireSurveyOwner throws 404 when survey is owned by another user (preventing leakage)", async () => {
-    vi.mocked(db.survey.findUnique).mockResolvedValueOnce({
+    const mockSurvey = {
       id: "survey_1",
+      slug: "test-survey",
       ownerId: "user_owner",
       title: "Test Survey",
-    } as any);
+      description: "",
+      draftSchema: {},
+      status: "DRAFT" as const,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    vi.mocked(db.survey.findUnique).mockResolvedValueOnce(mockSurvey);
 
     await expect(requireSurveyOwner("survey_1", "user_attacker")).rejects.toThrow(
       new ApiError(404, "Survey not found", "NOT_FOUND")

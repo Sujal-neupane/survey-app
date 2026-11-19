@@ -1,18 +1,17 @@
 "use client";
 
-import { useState, useEffect, use, useRef } from "react";
+import { useState, useEffect, use, useCallback } from "react";
 import type { SurveySchema, Answers } from "@/lib/survey/types";
 import { SurveyRenderer } from "@/components/survey/SurveyRenderer";
 import { nanoid } from "nanoid";
 import {
-  AlertCircle,
   Lock,
-  Loader2,
-  RotateCcw,
   CheckCircle2,
   FileQuestion,
   Clock,
 } from "lucide-react";
+
+export const dynamic = "force-dynamic";
 
 interface SurveyResponseData {
   title: string;
@@ -32,8 +31,8 @@ export default function PublicSurveyPage({
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<SurveyResponseData | null>(null);
   const [errorStatus, setErrorStatus] = useState<number | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [retryAfter, setRetryAfter] = useState<number | null>(null);
+  const [_errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [_retryAfter, setRetryAfter] = useState<number | null>(null);
 
   // Partial draft & resume state
   const [draftToken, setDraftToken] = useState<string>("");
@@ -46,7 +45,7 @@ export default function PublicSurveyPage({
   const [submitting, setSubmitting] = useState(false);
 
   // Load survey schema from API
-  const loadSurvey = async () => {
+  const loadSurvey = useCallback(async () => {
     setLoading(true);
     setErrorStatus(null);
     setErrorMessage(null);
@@ -88,16 +87,16 @@ export default function PublicSurveyPage({
       } else {
         setDraftToken(nanoid(12));
       }
-    } catch (err: any) {
-      setErrorMessage(err.message || "An unexpected error occurred");
+    } catch (err: unknown) {
+      setErrorMessage(err instanceof Error ? err.message : "An unexpected error occurred");
     } finally {
       setLoading(false);
     }
-  };
+  }, [slug]);
 
   useEffect(() => {
     loadSurvey();
-  }, [slug]);
+  }, [loadSurvey]);
 
   // Handle final submission
   const handleSubmit = async (answers: Answers, honeypotWebsite?: string) => {
@@ -124,8 +123,8 @@ export default function PublicSurveyPage({
       // Clear local draft on successful submission
       localStorage.removeItem(`survey_draft_${slug}`);
       setAlreadySubmitted(true);
-    } catch (err: any) {
-      alert(err.message || "Failed to submit response");
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Failed to submit response");
       throw err;
     } finally {
       setSubmitting(false);

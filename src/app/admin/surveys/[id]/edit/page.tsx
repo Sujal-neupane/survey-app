@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useMemo, useRef, use } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import type { SurveySchema, Question } from "@/lib/survey/types";
 import { validateSurveySchema } from "@/lib/survey/schemaChecks";
 import { QuestionList } from "@/components/builder/QuestionList";
@@ -10,7 +9,6 @@ import { PreviewPane } from "@/components/builder/PreviewPane";
 import {
   ArrowLeft,
   Check,
-  CloudCheck,
   Eye,
   Edit3,
   Globe,
@@ -20,6 +18,8 @@ import {
   Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+export const dynamic = "force-dynamic";
 
 interface SurveyData {
   id: string;
@@ -33,7 +33,6 @@ interface SurveyData {
 
 export default function BuilderPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const router = useRouter();
 
   const [survey, setSurvey] = useState<SurveyData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -74,9 +73,9 @@ export default function BuilderPage({ params }: { params: Promise<{ id: string }
           setQuestions(data.survey.draftSchema?.questions || []);
           setLoading(false);
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (mounted) {
-          setLoadError(err.message || "Failed to load");
+          setLoadError(err instanceof Error ? err.message : "Failed to load");
           setLoading(false);
         }
       }
@@ -190,8 +189,8 @@ export default function BuilderPage({ params }: { params: Promise<{ id: string }
           latestVersion: data.version,
         });
       }
-    } catch (err: any) {
-      alert(err.message || "Publishing failed");
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Publishing failed");
     } finally {
       setPublishing(false);
     }

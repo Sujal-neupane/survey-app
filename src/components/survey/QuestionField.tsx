@@ -7,9 +7,9 @@ import { cn } from "@/lib/utils";
 
 interface QuestionFieldProps {
   question: Question;
-  value: any;
+  value: unknown;
   error?: string;
-  onChange: (val: any) => void;
+  onChange: (val: string | number | string[]) => void;
   disabled?: boolean;
 }
 
@@ -112,7 +112,6 @@ export function QuestionField({
           <div
             role="group"
             id={fieldId}
-            aria-invalid={!!error}
             aria-describedby={error ? errorId : question.helpText ? helpId : undefined}
             className="space-y-2 pt-1"
           >

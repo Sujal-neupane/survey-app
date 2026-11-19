@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { nanoid } from "nanoid";
+import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth";
 import { apiHandler } from "@/lib/errors";
@@ -93,7 +94,7 @@ export const POST = apiHandler(async (req: Request) => {
       description,
       slug,
       ownerId: session.userId,
-      draftSchema: initialSchema as any,
+      draftSchema: initialSchema as unknown as Prisma.InputJsonValue,
       status: "DRAFT",
     },
     select: {

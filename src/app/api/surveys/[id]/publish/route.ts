@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { requireAuth, requireSurveyOwner } from "@/lib/auth";
 import { apiHandler, ApiError } from "@/lib/errors";
@@ -43,7 +44,7 @@ export const POST = apiHandler(async (_req: Request, { params }: { params: Promi
         version: nextVersion,
         title: survey.title,
         description: survey.description,
-        schema: parsedSchema.data as any,
+        schema: parsedSchema.data as unknown as Prisma.InputJsonValue,
       },
     }),
     db.survey.update({

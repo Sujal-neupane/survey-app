@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { requireAuth, requireSurveyOwner } from "@/lib/auth";
 import { apiHandler, ApiError } from "@/lib/errors";
@@ -76,7 +77,7 @@ export const PUT = apiHandler(async (req: Request, { params }: { params: Promise
     data: {
       title,
       description,
-      draftSchema: schema as any,
+      draftSchema: schema as unknown as Prisma.InputJsonValue,
     },
     select: {
       id: true,

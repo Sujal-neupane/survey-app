@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, use, useCallback } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -11,13 +11,26 @@ import {
   List,
   Edit3,
   Loader2,
-  FileSpreadsheet,
 } from "lucide-react";
 import type { AnalyticsResult } from "@/lib/survey/analytics";
 import { StatCard } from "@/components/analytics/StatCard";
 import { ChoiceChart } from "@/components/analytics/ChoiceChart";
 import { RatingChart } from "@/components/analytics/RatingChart";
 import { TextList } from "@/components/analytics/TextList";
+
+export const dynamic = "force-dynamic";
+
+interface ResponseAnswerExport {
+  label: string;
+  displayValue: string;
+}
+
+interface ResponseExportItem {
+  id: string;
+  version: number;
+  submittedAt: string;
+  answers: ResponseAnswerExport[];
+}
 
 export default function AnalyticsPage({
   params,
@@ -33,7 +46,7 @@ export default function AnalyticsPage({
   const [lastResponseAt, setLastResponseAt] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
 
-  const fetchAnalytics = async (ver: string) => {
+  const fetchAnalytics = useCallback(async (ver: string) => {
     setLoading(true);
     try {
       const q = ver === "all" ? "all" : ver;
@@ -49,11 +62,11 @@ export default function AnalyticsPage({
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
     fetchAnalytics(selectedVersion);
-  }, [id, selectedVersion]);
+  }, [fetchAnalytics, selectedVersion]);
 
   // Export CSV function
   const handleExportCSV = async () => {
@@ -63,7 +76,7 @@ export default function AnalyticsPage({
       if (!res.ok) throw new Error("Failed to export responses");
       const data = await res.json();
 
-      const responses = data.responses || [];
+      const responses: ResponseExportItem[] = data.responses || [];
       if (responses.length === 0) {
         alert("No responses available to export.");
         return;
@@ -81,7 +94,7 @@ export default function AnalyticsPage({
       const csvRows = [headers.map((h) => `"${h.replace(/"/g, '""')}"`).join(",")];
 
       for (const r of responses) {
-        const answerMap = new Map(r.answers.map((a: any) => [a.label, a.displayValue]));
+        const answerMap = new Map(r.answers.map((a) => [a.label, a.displayValue]));
         const row = [
           r.id,
           `v${r.version}`,
@@ -99,8 +112,8 @@ export default function AnalyticsPage({
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    } catch (err: any) {
-      alert(err.message || "Export failed");
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Export failed");
     } finally {
       setExporting(false);
     }
@@ -266,7 +279,6 @@ export default function AnalyticsPage({
                       label={q.label}
                       answeredCount={q.answeredCount}
                       recent={q.recent}
-                      hasMore={q.hasMore}
                       surveyId={id}
                     />
                   );

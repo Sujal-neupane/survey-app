@@ -27,7 +27,7 @@ interface QuestionCardProps {
   onDuplicate: (q: Question) => void;
   onDelete: (id: string) => void;
   onMove: (index: number, direction: "up" | "down") => void;
-  dragHandleProps?: Record<string, any>;
+  dragHandleProps?: Record<string, unknown>;
 }
 
 export function QuestionCard({

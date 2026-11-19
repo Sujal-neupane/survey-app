@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import type { SurveySchema, Answers } from "@/lib/survey/types";
 import { getVisibleQuestionIds, isEmpty } from "@/lib/survey/visibility";
 import { validateAnswers } from "@/lib/survey/validate";
@@ -42,21 +42,6 @@ export function SurveyRenderer({
     return schema.questions.filter((q) => visibleIds.has(q.id));
   }, [schema, visibleIds]);
 
-  // Clean answers for questions that became hidden
-  useEffect(() => {
-    setAnswers((prev) => {
-      let changed = false;
-      const next: Answers = { ...prev };
-      for (const key of Object.keys(next)) {
-        if (!visibleIds.has(key)) {
-          delete next[key];
-          changed = true;
-        }
-      }
-      return changed ? next : prev;
-    });
-  }, [visibleIds]);
-
   // Compute progress: answered visible questions / total visible questions
   const answeredCount = useMemo(() => {
     let count = 0;
@@ -68,11 +53,25 @@ export function SurveyRenderer({
     return count;
   }, [visibleQuestions, answers]);
 
-  const handleAnswerChange = (questionId: string, val: any) => {
-    setAnswers((prev) => ({
-      ...prev,
+  const handleAnswerChange = (questionId: string, val: string | number | string[]) => {
+    // 1. Update answer for this question
+    const candidateAnswers: Answers = {
+      ...answers,
       [questionId]: val,
-    }));
+    };
+
+    // 2. Re-evaluate visibility live
+    const nextVisibleIds = getVisibleQuestionIds(schema, candidateAnswers);
+
+    // 3. Automatically prune answers for questions that became hidden
+    const prunedAnswers: Answers = {};
+    for (const [key, value] of Object.entries(candidateAnswers)) {
+      if (nextVisibleIds.has(key)) {
+        prunedAnswers[key] = value;
+      }
+    }
+
+    setAnswers(prunedAnswers);
 
     // Clear error on change if present
     if (errors[questionId]) {

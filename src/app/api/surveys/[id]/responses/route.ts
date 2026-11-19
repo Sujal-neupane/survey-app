@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAuth, requireSurveyOwner } from "@/lib/auth";
 import { apiHandler, ApiError } from "@/lib/errors";
-import type { SurveySchema, Question } from "@/lib/survey/types";
+import type { SurveySchema } from "@/lib/survey/types";
 
 export const GET = apiHandler(async (req: Request, { params }: { params: Promise<{ id: string }> }) => {
   const { id } = await params;
@@ -99,12 +99,12 @@ export const GET = apiHandler(async (req: Request, { params }: { params: Promise
 
   // Format responses with mapped labels
   const formattedResponses = rawResponses.map((r) => {
-    const rawAnswers = (r.answers as Record<string, any>) || {};
+    const rawAnswers = (r.answers as Record<string, unknown>) || {};
     const formattedAnswers: Array<{
       questionId: string;
       label: string;
       type: string;
-      value: any;
+      value: unknown;
       displayValue: string;
     }> = [];
 

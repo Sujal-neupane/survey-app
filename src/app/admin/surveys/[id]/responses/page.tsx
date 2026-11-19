@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, use, useCallback } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -14,11 +14,13 @@ import {
   Calendar,
 } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 interface AnswerItem {
   questionId: string;
   label: string;
   type: string;
-  value: any;
+  value: unknown;
   displayValue: string;
 }
 
@@ -45,7 +47,7 @@ export default function ResponsesPage({
   const [selectedVersion, setSelectedVersion] = useState<string>("all");
   const [exporting, setExporting] = useState(false);
 
-  const fetchResponses = async (p = 1, ver = selectedVersion) => {
+  const fetchResponses = useCallback(async (p = 1, ver = selectedVersion) => {
     setLoading(true);
     try {
       const v = ver === "all" ? "all" : ver;
@@ -63,11 +65,11 @@ export default function ResponsesPage({
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, selectedVersion]);
 
   useEffect(() => {
     fetchResponses(1, selectedVersion);
-  }, [id, selectedVersion]);
+  }, [fetchResponses, selectedVersion]);
 
   // Handle Export CSV
   const handleExportCSV = async () => {
@@ -112,8 +114,8 @@ export default function ResponsesPage({
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    } catch (err: any) {
-      alert(err.message || "Export failed");
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Export failed");
     } finally {
       setExporting(false);
     }

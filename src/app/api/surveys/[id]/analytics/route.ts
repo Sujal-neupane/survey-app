@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAuth, requireSurveyOwner } from "@/lib/auth";
 import { apiHandler, ApiError } from "@/lib/errors";
-import { aggregate } from "@/lib/survey/analytics";
+import { aggregate, type ResponseItem } from "@/lib/survey/analytics";
 import type { SurveySchema, Question } from "@/lib/survey/types";
 
 export const GET = apiHandler(async (req: Request, { params }: { params: Promise<{ id: string }> }) => {
@@ -102,7 +102,7 @@ export const GET = apiHandler(async (req: Request, { params }: { params: Promise
     orderBy: { createdAt: "desc" },
   });
 
-  const analytics = aggregate(baseSchema, responses as any, availableVersions);
+  const analytics = aggregate(baseSchema, responses as ResponseItem[], availableVersions);
 
   return NextResponse.json({
     analytics,

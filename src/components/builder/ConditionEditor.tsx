@@ -221,7 +221,7 @@ export function ConditionEditor({
                   onChange={(e) =>
                     handleUpdateCondition(idx, {
                       ...cond,
-                      operator: e.target.value as any,
+                      operator: e.target.value as "equals" | "not_equals",
                     })
                   }
                   className="px-2 py-1 rounded border border-slate-300 bg-white"
@@ -237,7 +237,7 @@ export function ConditionEditor({
                   onChange={(e) =>
                     handleUpdateCondition(idx, {
                       ...cond,
-                      operator: e.target.value as any,
+                      operator: e.target.value as "includes",
                     })
                   }
                   className="px-2 py-1 rounded border border-slate-300 bg-white"
@@ -252,7 +252,7 @@ export function ConditionEditor({
                   onChange={(e) =>
                     handleUpdateCondition(idx, {
                       ...cond,
-                      operator: e.target.value as any,
+                      operator: e.target.value as "equals" | "gt" | "lt",
                     })
                   }
                   className="px-2 py-1 rounded border border-slate-300 bg-white"

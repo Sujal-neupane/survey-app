@@ -2,13 +2,12 @@
 
 import Link from "next/link";
 import type { TextRecentItem } from "@/lib/survey/analytics";
-import { MessageSquare, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 interface TextListProps {
   label: string;
   answeredCount: number;
   recent: TextRecentItem[];
-  hasMore: boolean;
   surveyId: string;
 }
 
@@ -16,7 +15,6 @@ export function TextList({
   label,
   answeredCount,
   recent,
-  hasMore,
   surveyId,
 }: TextListProps) {
   return (
@@ -43,7 +41,7 @@ export function TextList({
                 className="p-3 bg-slate-50/70 border border-slate-100 rounded-lg text-xs space-y-1.5"
               >
                 <p className="text-slate-800 font-normal leading-relaxed whitespace-pre-wrap">
-                  "{item.text}"
+                  &ldquo;{item.text}&rdquo;
                 </p>
                 <div className="text-[10px] text-slate-400 font-mono">
                   {new Date(item.submittedAt).toLocaleString()}

@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
 import { nanoid } from "nanoid";
 import type { Question, QuestionType, Option } from "@/lib/survey/types";
 import { QuestionCard } from "./QuestionCard";
@@ -21,7 +20,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Plus, Type, CheckCircle, CheckSquare, Star } from "lucide-react";
+import { Type, CheckCircle, CheckSquare, Star } from "lucide-react";
 
 interface QuestionListProps {
   questions: Question[];
@@ -118,8 +117,9 @@ export function QuestionList({
       });
 
       if (validConditions.length === 0) {
-        const { showIf, ...rest } = q;
-        return rest as Question;
+        const copy = { ...q };
+        delete copy.showIf;
+        return copy as Question;
       }
 
       return {

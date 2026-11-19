@@ -54,8 +54,11 @@ export function handleApiError(err: unknown) {
   );
 }
 
-export function apiHandler(handler: (req: Request, context?: any) => Promise<Response>) {
-  return async (req: Request, context?: any) => {
+// Handler wrapper that catches errors and produces standard error response
+export function apiHandler<T = unknown>(
+  handler: (req: Request, context: T) => Promise<Response>
+) {
+  return async (req: Request, context: T) => {
     try {
       return await handler(req, context);
     } catch (err) {
