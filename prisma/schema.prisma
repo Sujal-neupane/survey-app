@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SurveyStatus {
+  DRAFT
+  PUBLISHED
+  CLOSED
+}
+
+enum ResponseStatus {
+  PARTIAL
+  COMPLETE
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  surveys      Survey[]
+}
+
+model Survey {
+  id          String         @id @default(cuid())
+  slug        String         @unique
+  ownerId     String
+  owner       User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  title       String
+  description String         @default("")
+  draftSchema Json           // working copy edited in the builder
+  status      SurveyStatus   @default(DRAFT)
+  versions    SurveyVersion[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([ownerId])
+}
+
+// Immutable snapshot created on each publish.
+model SurveyVersion {
+  id          String     @id @default(cuid())
+  surveyId    String
+  survey      Survey     @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  version     Int
+  title       String
+  description String
+  schema      Json       // frozen copy of the questions
+  publishedAt DateTime   @default(now())
+  responses   Response[]
+
+  @@unique([surveyId, version])
+}
+
+model Response {
+  id              String         @id @default(cuid())
+  surveyVersionId String
+  surveyVersion   SurveyVersion  @relation(fields: [surveyVersionId], references: [id], onDelete: Cascade)
+  answers         Json           // { [questionId]: string | number | string[] }
+  status          ResponseStatus @default(COMPLETE)
+  draftToken      String?        @unique   // for partial saves
+  ipHash          String?
+  createdAt       DateTime       @default(now())
+  submittedAt     DateTime?
+
+  @@index([surveyVersionId, status])
+}
