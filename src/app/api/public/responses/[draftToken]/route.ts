@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { apiHandler, ApiError } from "@/lib/errors";
 import { validateAnswers } from "@/lib/survey/validate";
@@ -65,7 +66,7 @@ export const PATCH = apiHandler(async (req: Request, { params }: { params: Promi
     saved = await db.response.update({
       where: { draftToken },
       data: {
-        answers: validation.answers as any,
+        answers: validation.answers as Prisma.InputJsonValue,
         surveyVersionId: targetVersion.id,
         status: "PARTIAL",
         ipHash,
@@ -75,7 +76,7 @@ export const PATCH = apiHandler(async (req: Request, { params }: { params: Promi
     saved = await db.response.create({
       data: {
         draftToken,
-        answers: validation.answers as any,
+        answers: validation.answers as Prisma.InputJsonValue,
         surveyVersionId: targetVersion.id,
         status: "PARTIAL",
         ipHash,
